@@ -3,14 +3,13 @@ Vercel serverless function to bridge between Render and HuggingFace
 Place this in api/analyze.py in your GitHub repo
 """
 
-from http.server import BaseHTTPRequestHandler
-import json
 from gradio_client import Client, handle_file
 import base64
 from PIL import Image
 from io import BytesIO
 import tempfile
 import os
+import json
 
 # Initialize client globally (reused across invocations)
 client = None
@@ -27,49 +26,70 @@ def get_client():
             client = None
     return client
 
-class handler(BaseHTTPRequestHandler):
-    def do_OPTIONS(self):
-        """Handle CORS preflight"""
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
-        
-    def do_POST(self):
-        """Handle POST request"""
-        # Set CORS headers
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        
+def handler(request):
+    """Vercel serverless function handler"""
+    
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        }
+    
+    # Handle GET request (health check)
+    if request.method == 'GET':
+        client = get_client()
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            },
+            "body": {
+                "status": "healthy",
+                "huggingface_connected": client is not None
+            }
+        }
+    
+    # Handle POST request (analyze image)
+    if request.method == 'POST':
         try:
-            # Read request body
-            content_length = int(self.headers['Content-Length'])
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            
-            # Get image data
+            # Parse request body
+            data = json.loads(request.body)
             image_base64 = data.get('image', '')
             enhance = data.get('enhance', True)
             
             if not image_base64:
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    "status": "error",
-                    "error": "No image provided"
-                }).encode())
-                return
+                return {
+                    "statusCode": 400,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "body": {
+                        "status": "error",
+                        "error": "No image provided"
+                    }
+                }
             
             # Get or create client
             client = get_client()
             if not client:
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    "status": "error",
-                    "error": "Cannot connect to HuggingFace"
-                }).encode())
-                return
+                return {
+                    "statusCode": 503,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "body": {
+                        "status": "error",
+                        "error": "Cannot connect to HuggingFace"
+                    }
+                }
             
             # Decode base64 image
             if image_base64.startswith('data:image'):
@@ -91,9 +111,6 @@ class handler(BaseHTTPRequestHandler):
                     api_name="/predict"
                 )
                 
-                # Send response
-                self.end_headers()
-                
                 # Ensure result is JSON serializable
                 if isinstance(result, str):
                     try:
@@ -101,7 +118,14 @@ class handler(BaseHTTPRequestHandler):
                     except:
                         pass
                 
-                self.wfile.write(json.dumps(result).encode())
+                return {
+                    "statusCode": 200,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "body": result
+                }
                 
             finally:
                 # Clean up temp file
@@ -111,22 +135,27 @@ class handler(BaseHTTPRequestHandler):
                     pass
                     
         except Exception as e:
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                "status": "error",
-                "error": str(e)
-            }).encode())
+            return {
+                "statusCode": 500,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                },
+                "body": {
+                    "status": "error",
+                    "error": str(e)
+                }
+            }
     
-    def do_GET(self):
-        """Health check endpoint"""
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        
-        client = get_client()
-        
-        self.wfile.write(json.dumps({
-            "status": "healthy",
-            "huggingface_connected": client is not None
-        }).encode())
+    # Method not allowed
+    return {
+        "statusCode": 405,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        },
+        "body": {
+            "status": "error",
+            "error": "Method not allowed"
+        }
+    }
