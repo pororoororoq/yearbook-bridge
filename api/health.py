@@ -1,18 +1,18 @@
-"""
-Health check endpoint for the bridge server
-Place this in api/health.py
-"""
+# api/health.py
+from http.server import BaseHTTPRequestHandler
+import json
 
-def handler(request):
-    """Vercel serverless function handler"""
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-        },
-        "body": {
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        message = {
             "status": "healthy",
             "service": "yearbook-bridge"
         }
-    }
+        
+        self.wfile.write(json.dumps(message).encode())
+        return
