@@ -1,13 +1,14 @@
 {
-  "functions": {
-    "api/analyze.py": {
-      "runtime": "python@3.9",
-      "maxDuration": 30
-    },
-    "api/health.py": {
-      "runtime": "python@3.9",
-      "maxDuration": 10
+  "builds": [
+    {
+      "src": "api/*.py",
+      "use": "@vercel/python"
     }
-  },
-  "regions": ["sfo1"]
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ]
 }
