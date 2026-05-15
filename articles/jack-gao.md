@@ -32,9 +32,9 @@ Gao posts a 68 percent improvement on CSI, the gold-standard metric for tornado 
 
 "I successfully predicted 13 of the 14 tornadoes," Gao said. "The maximum prediction time was 20 minutes ahead of a storm forming. It averaged around seven minutes."
 
-He looked inside the model itself.
+He worried the model was cheating: maybe it caught weak tornadoes that already existed instead of predicting new ones. He checked the timing of its hits.
 
-"Pre-tornadic structures are fundamentally identifiable and differentiating from tornadoes themselves," Gao said. "That's big."
+"I saw the vast majority of my positive hits before there were any actual tornadoes," Gao said. "When the actual tornadoes were maturing, I saw a lot lower positive rate. That's big."
 
 Working with his professors and a National Weather Service coach, Gao thinks his ablation analysis is the first observational evidence of the Rotunno-Klemp-Wiseman hypothesis, a forty-year-old theory of how horizontal vorticity tips vertical to form a tornado.
 
