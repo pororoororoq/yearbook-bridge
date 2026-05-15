@@ -20,7 +20,17 @@ Standard models evolve the atmosphere forward in time. Tornadoes are too small.
 
 "Even someone clapping their hands creates little eddies in the air, and that will propagate and affect stuff at this scale," Gao said. "You might be somewhat accurate for the first fifteen seconds, but by the time you get to ten to fifteen minutes, it's a butterfly effect."
 
-Gao threw out the prediction-by-simulation playbook. He pairs a convolutional neural network with a random forest classifier, bridging them with a principal-component step that carries spatial features into the decision tree. He says the combination is the first of its kind for weather data. Researchers at MIT's Lincoln Laboratory built the tagged Doppler radar dataset he trains on; he added a polar-coordinate range mask because radar doesn't think in Cartesian grids. The National Weather Service's own 2019 CNN underperformed older methods. Gao posts a 68 percent improvement on CSI, the gold-standard metric for tornado forecasting. Against the 2023 Memphis outbreak, the third-deadliest in U.S. history, his model caught 13 of 14 tornadoes with a maximum lead time of 20 minutes and an average of seven.
+Gao threw out the prediction-by-simulation playbook.
+
+"This is the first ever model that combines convolutional neural networks with random forest," Gao said. "Random forest models are good because they're very good at making decisions. Convolutional neural networks, how I thought of them, were less of making decisions of yes/no and more of feature extraction."
+
+A principal-component step bridges the two, feeding spatial features from the CNN into the decision tree. Researchers at MIT's Lincoln Laboratory built the tagged Doppler radar dataset he trains on; Gao bolted on a polar-coordinate range mask because radar doesn't think in Cartesian grids. The National Weather Service had tried something similar in 2019.
+
+"A CNN was made by the National Weather Service in 2019," Gao said. "But it completely ended up being worse than the current model. They just did a straight CNN."
+
+Gao posts a 68 percent improvement on CSI, the gold-standard metric for tornado forecasting. He ran the model live against the 2023 Memphis outbreak, the third-deadliest in U.S. history.
+
+"I successfully predicted 13 of the 14 tornadoes," Gao said. "The maximum prediction time was 20 minutes ahead of a storm forming. It averaged around seven minutes."
 
 He looked inside the model itself.
 
